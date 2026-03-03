@@ -1,0 +1,111 @@
+-- Create a dimension table to store information about the sales representatives
+CREATE TABLE sales_reps (
+    rep_id INT PRIMARY KEY,
+    rep_name VARCHAR(50),
+    team VARCHAR(50),
+    monthly_quota DECIMAL (10,2),
+    hire_date DATETIME
+);
+
+-- Load data into the sales_reps table from a local CSV file
+BULK INSERT sales_reps
+FROM 'C:\Mac\Home\Desktop\Data Analysis\ Mock Projects\MP-3\sales_reps.csv'
+WITH (
+    FIRSTROW = 2,           -- Skip the header row in the CSV
+    FIELDTERMINATOR = ',',  -- Specify comma as the column separator
+    ROWTERMINATOR = '0x0a', -- Specify newline as the row separator
+    TABLOCK,                -- Lock the table to optimize performance during bulk loading
+    FORMAT = 'CSV'
+);
+
+-- Create a dimension table to store client account details
+CREATE TABLE accounts(
+    account_id INT PRIMARY KEY,
+    company_name VARCHAR(50),
+    industry VARCHAR(50),
+    company_size VARCHAR(50),
+    region VARCHAR(50)
+);
+
+-- Load data into the accounts table
+BULK INSERT accounts 
+FROM 'C:\Mac\Home\Desktop\Data Analysis\ Mock Projects\MP-3\accounts.csv'
+WITH (
+    FIRSTROW = 2,
+    FIELDTERMINATOR = ',',
+    ROWTERMINATOR = '0x0a',
+    TABLOCK,
+    FORMAT = 'CSV'
+);
+
+-- Create a table to track potential customer leads
+CREATE TABLE leads (
+    lead_id INT PRIMARY KEY,
+    source VARCHAR(50),
+    created_date DATETIME,
+    status VARCHAR(50),
+    rep_id INT,
+    converted_date DATETIME,  -- Allows NULL by default for leads that haven't converted yet
+    FOREIGN KEY (rep_id) REFERENCES sales_reps(rep_id) -- Link back to the sales rep handling the lead
+);
+
+-- Load data into the leads table
+BULK INSERT leads
+FROM 'C:\Mac\Home\Desktop\Data Analysis\ Mock Projects\MP-3\leads.csv'
+WITH (
+    FIRSTROW = 2,
+    FIELDTERMINATOR = ',',
+    ROWTERMINATOR = '0x0a',
+    TABLOCK,
+    FORMAT = 'CSV'
+);
+
+-- Create a fact table to track active sales opportunities
+CREATE TABLE opportunities (
+    opp_id INT PRIMARY KEY,
+    lead_id INT,
+    account_id INT,
+    stage VARCHAR(50),
+    amount DECIMAL(10,2),
+    probability DECIMAL(10,2),
+    created_date DATETIME,
+    close_date DATETIME,  -- Allows NULL for opportunities that are still open
+    rep_id INT,
+    FOREIGN KEY (lead_id) REFERENCES leads(lead_id),          -- Link to the original lead
+    FOREIGN KEY (account_id) REFERENCES accounts(account_id), -- Link to the client account
+    FOREIGN KEY (rep_id) REFERENCES sales_reps(rep_id)        -- Link to the assigned sales rep
+);
+
+-- Load data into the opportunities table
+BULK INSERT opportunities
+FROM 'C:\Mac\Home\Desktop\Data Analysis\ Mock Projects\MP-3\opportunities.csv'
+WITH (
+    FIRSTROW = 2,
+    FIELDTERMINATOR = ',',
+    ROWTERMINATOR = '0x0a',
+    TABLOCK,
+    FORMAT = 'CSV'
+);
+
+-- Create a fact table to log individual interactions related to opportunities (with the corrected date column)
+CREATE TABLE activities(
+    activity_id INT PRIMARY KEY,
+    opp_id INT,
+    activity_type VARCHAR(50),
+    activity_date DATETIME,
+    rep_id INT,
+    duration_minutes INT,
+    FOREIGN KEY (opp_id) REFERENCES opportunities(opp_id), -- Link to the specific opportunity
+    FOREIGN KEY (rep_id) REFERENCES sales_reps(rep_id)     -- Link to the sales rep who performed the activity
+);
+
+-- Load data into the activities table
+BULK INSERT activities
+FROM 'C:\Mac\Home\Desktop\Data Analysis\ Mock Projects\MP-3\activities.csv'
+WITH (
+    FIRSTROW = 2,
+    FIELDTERMINATOR = ',',
+    ROWTERMINATOR = '0x0a',
+    TABLOCK,
+    FORMAT = 'CSV'
+);
