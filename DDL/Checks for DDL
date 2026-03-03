@@ -1,0 +1,5 @@
+SELECT TOP 10 * from leads;
+SELECT TOP 10 * from accounts;
+SELECT TOP 10 * from leads;
+SELECT TOP 10 * FROM sales_reps;
+SELECT TOP 10 * FROM activities;
