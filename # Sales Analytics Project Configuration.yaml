@@ -1,0 +1,84 @@
+﻿# Sales Analytics Project Configuration
+# Created for Lead Conversion Analysis Dashboard
+
+
+project:
+  name: "Lead Conversion Analysis"
+  version: "1.0"
+  description: "Sales analytics dashboard analyzing lead conversion, pipeline health, and rep performance"
+  database: "Lead_Conversion_Analytics"
+  created_date: "2026-03-05"
+
+
+# Database Tables Configuration
+tables:
+  - name: "sales_reps"
+    type: "dimension"
+    primary_key: "rep_id"
+    description: "Sales representative information"
+    
+  - name: "accounts"
+    type: "dimension"
+    primary_key: "account_id"
+    description: "Customer account details"
+    
+  - name: "leads"
+    type: "fact"
+    primary_key: "lead_id"
+    foreign_keys:
+      - column: "rep_id"
+        references: "sales_reps"
+    description: "Lead generation and conversion tracking"
+    
+  - name: "opportunities"
+    type: "fact"
+    primary_key: "opp_id"
+    foreign_keys:
+      - column: "lead_id"
+        references: "leads"
+      - column: "account_id"
+        references: "accounts"
+      - column: "rep_id"
+        references: "sales_reps"
+    description: "Sales opportunities and pipeline"
+    
+  - name: "activities"
+    type: "fact"
+    primary_key: "activity_id"
+    foreign_keys:
+      - column: "opp_id"
+        references: "opportunities"
+      - column: "rep_id"
+        references: "sales_reps"
+    description: "Sales activities and interactions"
+
+
+# Key Metrics Configuration
+metrics:
+  - name: "conversion_rate"
+    description: "Lead to conversion percentage"
+    calculation: "(converted_leads / total_leads) * 100"
+    format: "percentage"
+    
+  - name: "win_rate"
+    description: "Opportunity win percentage"
+    calculation: "(closed_won / (closed_won + closed_lost)) * 100"
+    format: "percentage"
+    
+  - name: "average_deal_size"
+    description: "Average revenue per won opportunity"
+    calculation: "SUM(amount) / COUNT(closed_won)"
+    format: "currency"
+    
+  - name: "sales_cycle_days"
+    description: "Average days from opportunity creation to close"
+    calculation: "AVG(DATEDIFF(close_date, created_date))"
+    format: "number"
+    
+  - name: "pipeline_value"
+    description: "Total value of open opportunities"
+    calculation: "SUM(amount) WHERE stage NOT IN ('Closed Won', 'Closed Lost')"
+    format: "currency"
+
+
+# End of Configuration
