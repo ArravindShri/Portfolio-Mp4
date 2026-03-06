@@ -1,0 +1,21 @@
+CREATE VIEW Monthly_Revenue_Analysis as 
+WITH Monthly_revenue AS (
+    -- Extract year-month from close_date for monthly revenue tracking
+    SELECT 
+        YEAR(close_date) AS revenue_year,
+        MONTH(close_date) AS revenue_month,
+        COUNT(*) AS deals_closed,
+        SUM(amount) AS total_revenue
+    FROM opportunities
+    WHERE stage = 'Closed Won'
+    GROUP BY YEAR(close_date), MONTH(close_date)
+)
+SELECT 
+    -- Format year and month as 'yyyy-MM' (e.g., '2024-01', '2024-10')
+-- Concatenate year + dash + zero-padded month
+-- RIGHT('0' + month, 2) ensures 2 digits: '1' → '01', '10' → '10'
+    CAST(revenue_year AS VARCHAR) + '-' + RIGHT('0' + CAST(revenue_month AS VARCHAR), 2) AS revenue_month,
+    deals_closed,
+    total_revenue,
+    SUM(total_revenue) OVER(ORDER BY revenue_year, revenue_month) AS running_total
+FROM Monthly_revenue
