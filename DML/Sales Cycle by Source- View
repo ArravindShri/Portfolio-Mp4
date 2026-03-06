@@ -1,0 +1,31 @@
+CREATE VIEW Sales_cycle_By_Source as 
+
+With Sales_Cycle as ( 
+
+Select 
+
+s.rep_id, 
+
+s.rep_name, 
+
+DATEDIFF(Day, o.created_date, o.close_date) as Sales_time_cycle, 
+
+l.source 
+
+From opportunities o
+
+Join Leads l 
+
+On l.lead_id = o.lead_id 
+
+Join sales_reps s ON s.rep_id = o.rep_id 
+
+Where o.stage IN ('Closed Won','Closed Lost')
+)
+SELECT source, 
+Max(Sales_time_cycle) as Maximum_sales_cycle,
+Min(Sales_time_cycle) as Minimum_sales_cycle,
+AVG(Sales_time_cycle) as AVG_Sales_cycle,
+COUNT(source) as Total_sale_per_source 
+From Sales_cycle 
+GROUP By source 
