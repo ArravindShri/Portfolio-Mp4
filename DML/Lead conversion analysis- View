@@ -1,0 +1,8 @@
+CREATE VIEW lead_conversion_rate AS 
+SELECT 
+    source,
+    COUNT(*) AS total_leads,
+    SUM(CASE WHEN status = 'Converted' THEN 1 ELSE 0 END) AS converted_leads,
+    ROUND(CAST(SUM(CASE WHEN status = 'Converted' THEN 1 ELSE 0 END) AS FLOAT) / COUNT(*) * 100,2) AS conversion_rate
+FROM leads
+GROUP BY source
