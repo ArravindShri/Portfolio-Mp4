@@ -1,0 +1,25 @@
+CREATE VIEW Metric AS 
+
+SELECT 
+    r.rep_id,
+    r.rep_name,
+    SUM(CASE WHEN o.stage = 'Closed Won' THEN o.amount ELSE 0 END) AS Total_Revenue,
+    COUNT(CASE WHEN o.stage = 'Closed Won' THEN 1 ELSE NULL END) AS Deals_won,
+    COUNT(CASE WHEN o.stage = 'Closed Lost' THEN 1 ELSE NULL END) AS Deals_lost,
+    ROUND(
+CAST(
+COUNT(CASE WHEN stage = 'Closed Won' THEN 1 ELSE NULL END) as Float 
+)
+/ 
+( 
+COUNT(CASE WHEN stage = 'Closed Won' THEN 1 ELSE NULL END) + 
+COUNT(CASE WHEN stage = 'Closed Lost' THEN 1 ELSE NULL END)
+)
+*100,
+2
+) as Win_rate,
+    RANK() OVER (ORDER BY SUM(CASE WHEN o.stage = 'Closed Won' THEN o.amount ELSE 0 END)DESC) AS revenue_rank
+FROM opportunities o
+JOIN sales_reps r ON o.rep_id = r.rep_id
+WHERE o.stage IN ('Closed Won', 'Closed Lost')
+GROUP BY r.rep_id, r.rep_name;
