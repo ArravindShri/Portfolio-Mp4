@@ -1,0 +1,7 @@
+SELECT 
+    stage,
+    COUNT(opp_id) as [Total Oppurtunities],
+    SUM(amount) as [Total Amount],
+    AVG(amount) as [Average Amount]
+FROM opportunities
+GROUP BY stage
