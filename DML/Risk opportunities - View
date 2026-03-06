@@ -1,0 +1,32 @@
+CREATE VIEW Risk_opportunities as 
+WITH Open_opportunities AS (
+	SELECT 
+		 opp_id,
+		 rep_id,
+		 account_id,
+		 amount,
+		 probability,
+		 DATEDIFF(day,created_date,GETDATE()) as days_open
+	FROM opportunities 
+	WHERE stage NOT IN ('Closed Win','Closed lost')
+)
+SELECT 
+	o.opp_id,
+	o.rep_id,
+	s.rep_name,
+	o.account_id,
+	o.amount,
+	o.probability,
+	o.days_open,
+	CASE
+		WHEN o.days_open > 30 THEN 'Deal open for 30 + days need attention'
+		WHEN o.amount > 50000 AND o. probability < 50 THEN 'High value Low probability' 
+		ELSE 'Monitor closely'
+	END as Risk_Category
+	FROM Open_opportunities o
+	JOIN sales_reps s 
+	ON o.rep_id = s.rep_id
+	JOIN accounts a 
+	ON o.account_id = a.account_id
+	WHERE (o.days_open > 30) or ( o.probability < 50 and o.amount > 50000)
+
